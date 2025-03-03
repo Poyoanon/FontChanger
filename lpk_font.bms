@@ -1,0 +1,143 @@
+# test script for packing single files into lpk archives (currently they're appended to the original file)
+# both modified file and archive should be in the same folder (for example EFTable_GameMsg.db and data.lpk)
+# use the script on the file you want to pack into the archive
+
+# set archive name here
+string ARCHIVE = "font.lpk"
+
+string KEY = "83657ea6ffa1e671375c689a2e99a598"  # for steam version
+string BASE = "1069d88738c5c75f82b44a1f0a382768"  # for steam version
+
+get FILE_NAME filename
+open FDSE ARCHIVE 1
+math ENTRY = 528
+string BASE h BASE
+
+get FILES long 1
+xmath SIZE "FILES * ENTRY"
+encryption blowfish KEY
+log MEMORY_FILE 4 SIZE 1
+encryption "" ""
+math MEM = -1
+
+math COUNT = -1
+for i = 0 < FILES
+    get NAMEZ long MEM
+    getdstring NAME NAMEZ MEM
+    padding ENTRY MEM
+    string NAME ! "\"
+    if NAME = FILE_NAME
+        if COUNT < 0
+            math COUNT = i
+            padding ENTRY MEM
+            goto -4 MEM SEEK_CUR
+            get ENC long MEM
+        endif
+        break
+    endif
+next i
+
+if COUNT < 0
+    print "File not found in this archive!"
+    cleanexit
+endif
+
+xmath INFO_OFF "COUNT * ENTRY"
+log MEMORY_FILE2 INFO_OFF ENTRY MEM
+goto INFO_OFF MEM
+findloc OFFSET string FILE_NAME MEM ""
+putvarchr MEMORY_FILE OFFSET 0x5F315F31 long
+math FILES + 1
+append -1
+    put FILES long MEM
+append 
+append 
+    log MEMORY_FILE 0 ENTRY MEMORY_FILE2
+append 
+
+get MODSIZE asize
+get SIZE asize MEM
+xmath INFO_OFF "SIZE - 12"
+if ENC = 0
+    xmath CHECK "MODSIZE % 1024"
+    if CHECK > 0
+        print "\nDatabase should be aligned to a size multiple of 1024!"
+        cleanexit
+    endif
+    putvarchr MEMORY_FILE INFO_OFF MODSIZE long
+    math INFO_OFF + 4
+    putvarchr MEMORY_FILE INFO_OFF MODSIZE long
+    math INFO_OFF + 4
+    putvarchr MEMORY_FILE INFO_OFF 0 long
+else
+    comtype zlib_compress
+    clog MEMORY_FILE5 0 MODSIZE MODSIZE
+    get ZSIZE asize MEMORY_FILE5
+    math ENSIZE = ZSIZE
+    math ENSIZE x 8
+    math OFFSET = ZSIZE
+    for OFFSET = OFFSET < ENSIZE
+        putvarchr MEMORY_FILE5 OFFSET 0
+    next OFFSET
+    putvarchr MEMORY_FILE INFO_OFF MODSIZE long
+    math INFO_OFF + 4
+    putvarchr MEMORY_FILE INFO_OFF ENSIZE long
+    math INFO_OFF + 4
+    putvarchr MEMORY_FILE INFO_OFF ZSIZE long
+endif
+math INFO_OFF + 4
+putvarchr MEMORY_FILE INFO_OFF 0 long
+
+string NAME = ARCHIVE
+string NAME % "."
+string NAME + "_mod.lpk"
+log NAME 0 4 MEM
+
+get FSIZE1 asize 1
+xmath OFF "(FILES - 1) * ENTRY + 8"
+math FSIZE1 - OFF
+append
+    encryption blowfish KEY "" 1
+    log NAME 4 SIZE MEM
+    encryption "" ""
+    log NAME OFF FSIZE1 1
+    if ENC = 0
+        callfunction get_key 1
+        math CUR_OFF = 0
+        math BLOCK = 1024
+        for CUR_OFF = CUR_OFF < MODSIZE
+            encryption aes_256_cbc AES_KEY "" 1 32
+            log NAME CUR_OFF BLOCK
+            encryption "" ""
+            math CUR_OFF + BLOCK
+        next
+    else
+        encryption blowfish KEY "" 1
+        log NAME 0 ENSIZE MEMORY_FILE5
+    endif
+append
+
+startfunction get_key
+    log MEMORY_FILE10 0 0
+    string TMP_NAME = FILE_NAME
+    string TMP_NAME % "."
+    set TMP_NAME to_unicode TMP_NAME
+    encryption md5 TMP_NAME
+    encryption "" ""
+    string MD = QUICKBMS_HASH
+
+    for x = 0 < 16
+        xmath TMP "15 - x"
+        getvarchr K BASE x
+        getvarchr M MD TMP
+        math K ^ M
+        putvarchr MEMORY_FILE10 x K
+    next x
+
+    getdstring AES_KEY 16 MEMORY_FILE10
+    string AES_KEY 0b AES_KEY
+    string AES_KEY l AES_KEY
+    encryption sha256 AES_KEY
+    encryption "" ""
+    string AES_KEY = QUICKBMS_HASH
+endfunction

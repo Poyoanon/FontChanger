@@ -1,0 +1,34 @@
+# Build artifacts
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+!quickbms_4gb_files.exe
+
+# Visual Studio files
+.vscode/
+.vs/
+*.suo
+*.user
+*.cache
+*.csproj.user
+
+# Dependencies
+packages/
+*.nupkg
+project.lock.json
+project.assets.json
+
+# Logs and temp files
+*.log
+*.tmp
+*.cache
+*.DS_Store
+
+# Git ignore for Costura/Fody
+FodyWeavers.xml
+*.costura
+
+# If using NuGet
+.nuget/
