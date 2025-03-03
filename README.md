@@ -3,6 +3,7 @@
 FontChanger is a command-line tool that allows you to modify fonts in Lost Ark.
 
 ## How to Use
+- **[Download FontChanger here.](https://github.com/Poyoanon/FontChanger/releases)**
 - Run `FontChanger.exe`.
 - Make sure the fonts you have are in `.ttf` format.
 - Select a font for **titles** when prompted. This is used for damage fonts, and important titles in the game.
