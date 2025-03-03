@@ -27,18 +27,9 @@ namespace FontChanger
             string originalFontNormal = "ExuberanceF-Regular.ttf";
             string originalFontTitle = "MonarchaF-Regular.ttf";
 
-            if (File.Exists("font_mod.lpk"))
+            if (File.Exists("font.lpk") && !File.Exists("font_original.lpk"))
             {
-                bool replace = AnsiConsole.Confirm("font_mod.lpk already exists. Do you want to replace it?");
-                if (replace)
-                {
-                    File.Delete("font_mod.lpk");
-                }
-                else
-                {
-                    AnsiConsole.Markup("[red]Operation cancelled.[/]");
-                    Environment.Exit(0);
-                }
+                File.Move("font.lpk", "font_original.lpk");
             }
 
             AnsiConsole.Markup("[bold yellow]Select font for titles[/] (This is for damage fonts and other misc. titles in game)\n");
@@ -49,13 +40,20 @@ namespace FontChanger
                 return;
             }
 
-            string workingDir = Path.GetDirectoryName(moddedFontTitle);
-
             File.Copy(moddedFontTitle, originalFontTitle, true);
-            Process(quickbmsPath, scriptPath, originalFontTitle);
 
-            if (File.Exists("font.lpk")) File.Move("font.lpk", "font_original.lpk");
-            if (File.Exists("font_mod.lpk")) File.Move("font_mod.lpk", "font.lpk");
+            if (!File.Exists("font.lpk"))
+            {
+                File.Copy("font_original.lpk", "font.lpk", true);
+            }
+
+            Process(quickbmsPath, scriptPath, originalFontTitle); 
+
+            if (File.Exists("font_mod.lpk"))
+            {
+                if (File.Exists("font.lpk")) File.Delete("font.lpk");
+                File.Move("font_mod.lpk", "font.lpk");
+            }
 
             File.Delete(originalFontTitle);
 
@@ -69,23 +67,15 @@ namespace FontChanger
 
             File.Copy(moddedFontNormal, originalFontNormal, true);
 
-            if (!File.Exists("font.lpk"))
-            {
-                File.Copy("font_original.lpk", "font.lpk", true);
-            }
-
-            Process(quickbmsPath, scriptPath, originalFontNormal);
-
-            if (File.Exists("font.lpk")) File.Delete("font.lpk");
-
-            File.Delete(originalFontNormal);
-            File.Move("font_original.lpk", "font.lpk");
+            Process(quickbmsPath, scriptPath, originalFontNormal); 
 
             if (File.Exists("font_mod.lpk"))
             {
-                File.Delete(originalFontTitle);
-                File.Delete(originalFontNormal);
+                if (File.Exists("font.lpk")) File.Delete("font.lpk");
+                File.Move("font_mod.lpk", "font.lpk");
             }
+
+            File.Delete(originalFontNormal);
 
             AnsiConsole.Write(new Markup("[green]Process completed successfully![/]"));
             Environment.Exit(0);
