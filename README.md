@@ -8,9 +8,10 @@ FontChanger is a command-line tool that allows you to modify fonts in Lost Ark.
 - Make sure the fonts you have are in `.ttf` format.
 - Select a font for **titles** when prompted. This is used for damage fonts, and important titles in the game.
 - Select a font for **normal text** when prompted. This is used for dialogue and reading text.
-- The program will process the fonts and generate `font_mod.lpk`. 
-- Place `font_mod.lpk` in the `EFGame` folder where Lost Ark is located and rename it to `font.lpk`.
+- The program will process the fonts and generate `font.lpk`, which is your modded file. The program will also create a backup `font_original.lpk` for you.
+- Place `font.lpk` in the `EFGame` folder where Lost Ark is located.
 - Once complete, the modified font file will be ready to use in the game.
+- NOTE: To make it easier, just place the `.exe` file in the `EFGame` folder. You don't have to do funny file moving if you do so.
 
 ## Credits
 This project utilizes the following tools:
